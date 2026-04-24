@@ -2,23 +2,23 @@
 #define QCM_H
 
 typedef struct {
-    int points_negatifs;
-    int reponses_multiples;
-    int mode_sequentiel;
-} Parametres; 
+    int negative_points;
+    int multiple_answers;
+    int sequential_mode;
+} Parameters; 
 
 typedef struct {
-    char enonce[256];
-    char propositions[4][256];
-    int reponses_correctes[4];
-    int nb_propositions;
+    char statement[256];
+    char options[4][256];
+    int correct_answers[4];
+    int num_options;
 } Question;
 
 typedef struct {
-    char nom[128];
-    Parametres regles;
+    char name[128];
+    Parameters rules;
     Question questions[50];
-    int nb_questions;
+    int num_questions;
 }QCM;
 
 #endif
