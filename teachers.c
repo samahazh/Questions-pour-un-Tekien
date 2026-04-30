@@ -51,7 +51,7 @@ void createQCM() {
 
     printf("2. Autoriser plusieurs reponses vraies par question ? (1 = Oui, 0 = Non) : ");
     fgets(input, sizeof(input), stdin);
-    multAnswers = atoi(input);
+    multreponses = atoi(input);
 
     printf("3. Mode sequentiel (impossible de passer une question) ? (1 = Oui, 0 = Non) : ");
     fgets(input, sizeof(input), stdin);
@@ -82,12 +82,12 @@ void createQCM() {
         fgets(questionText, sizeof(questionText), stdin);
         removeNewline(questionText);
 
-    fprintf(file, "\nQUESTION:%s\n", questionText);
+    fprintf(fichier, "\nQUESTION:%s\n", questionText);
 
     printf("Combien de propositions (choix) pour cette question ? : ");
     fgets(input, sizeof(input), stdin);
     numChoix = atoi(input);
-    fprintf(file, "TOTAL_CHOIX:%d\n", numChoix);
+    fprintf(fichier, "TOTAL_CHOIX:%d\n", numChoix);
       
     for (int j = 0; j < numChoix; j++) {
             char choixText[TAILLE_MAX];
@@ -101,11 +101,11 @@ void createQCM() {
             fgets(input, sizeof(input), stdin);
             Correct = atoi(input);
 
-            fprintf(file, "CHOIX:%d:%s\n", Correct, choixText);
+            fprintf(fichier, "CHOIX:%d:%s\n", Correct, choixText);
         }
     }
 
   
-    fclose(file);
-    printf("\n>> SUCCES : Le QCM '%s' a ete sauvegarde avec succes dans le fichier '%s' !\n", qcmName, filename);
+    fclose(fichier);
+    printf("\n>> SUCCES : Le QCM '%s' a ete sauvegarde avec succes dans le fichier '%s' !\n", nomqcm, nomfichier);
     }
