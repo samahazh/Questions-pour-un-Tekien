@@ -2,7 +2,7 @@
 #define TEACHERS_H
 
 #include "qcm.h"
-
+void launchTeacherMode();
 
 
 
