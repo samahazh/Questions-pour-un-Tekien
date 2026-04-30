@@ -3,17 +3,6 @@
 
 #include "qcm.h"
 
-
-
-
-
-
-
-
-
-
-
-
-
+void launchStudentMode();
 
 #endif
