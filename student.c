@@ -99,7 +99,7 @@ void launchStudentMode() {
                 }
 
                 if (choixEleve == 0 && monQuiz.rules.sequential_mode == 0) {
-                    printf("[INFO] Question passee.\n");
+                    printf("Question passee.\n");
                     break; // On sort de la boucle
                 } else if (choixEleve < 1 || choixEleve > MAX_OPTIONS) {
                     printf("Erreur : Choisissez un chiffre valide.\n");
