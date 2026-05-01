@@ -5,34 +5,66 @@
 #include "teachers.h"
 
 void launchTeacherMode() {
+    char motDePasseSaisi[50];
+    const char vraiMotDePasse[] = "prof123";
+    
+    // Notre "panier" magique pour sécuriser toutes les saisies de chiffres
+    char bufferSaisie[MAX_TEXT]; 
+
+    printf("\n==========================================\n");
+    printf("             MODE ENSEIGNANT\n");
+    printf("==========================================\n");
+    printf("Mot de passe requis : ");
+    
+    fgets(motDePasseSaisi, sizeof(motDePasseSaisi), stdin);
+    motDePasseSaisi[strcspn(motDePasseSaisi, "\n")] = 0;
+
+    if (strcmp(motDePasseSaisi, vraiMotDePasse) != 0) {
+        printf("\n[ALERTE] Mot de passe incorrect. Retour au menu principal...\n");
+        return; 
+    }
+
     QCM nouveauQCM;
     char nomFichier[100];
 
-    printf("\n--- CONFIGURATION DU QCM ---\n");
-    printf("Nom du fichier à créer (ex: quizz.bin) : ");
-    scanf("%s", nomFichier);
+    printf("\n------------------------------------------\n");
+    printf("           CONFIGURATION DU QCM\n");
+    printf("------------------------------------------\n");
+    
+    printf("Nom du fichier a creer (ex: quizz.bin) : ");
+    fgets(nomFichier, sizeof(nomFichier), stdin);
+    nomFichier[strcspn(nomFichier, "\n")] = 0; // On retire le '\n'
 
     printf("Nombre de questions : ");
-    scanf("%d", &nouveauQCM.nbTotalQuestions);
+    fgets(bufferSaisie, sizeof(bufferSaisie), stdin);
+    nouveauQCM.num_questions = atoi(bufferSaisie);
 
-    printf("Activer les points négatifs ? (1=Oui, 0=Non) : ");
-    scanf("%d", &nouveauQCM.parametres.pointsNegatifs);
+    printf("Activer les points negatifs ? (1=Oui, 0=Non) : ");
+    fgets(bufferSaisie, sizeof(bufferSaisie), stdin);
+    nouveauQCM.rules.negative_points = atoi(bufferSaisie);
 
-    for (int i = 0; i < nouveauQCM.nbTotalQuestions; i++) {
+    printf("Activer les reponses multiples ? (1=Oui, 0=Non) : ");
+    fgets(bufferSaisie, sizeof(bufferSaisie), stdin);
+    nouveauQCM.rules.multiple_answers = atoi(bufferSaisie);
+
+    printf("Activer le mode sequentiel ? (1=Oui, 0=Non) : ");
+    fgets(bufferSaisie, sizeof(bufferSaisie), stdin);
+    nouveauQCM.rules.sequential_mode = atoi(bufferSaisie);
+
+    for (int i = 0; i < nouveauQCM.num_questions; i++) {
         printf("\nQuestion %d :\n", i + 1);
-        printf("  Énoncé : ");
-        getchar(); // Consomme le retour ligne précédent
-        fgets(nouveauQCM.listeQuestions[i].enonce, TAILLE_TEXTE, stdin);
-        nouveauQCM.listeQuestions[i].enonce[strcspn(nouveauQCM.listeQuestions[i].enonce, "\n")] = 0;
+        printf("  Enonce : ");
+        fgets(nouveauQCM.questions[i].statement, MAX_TEXT, stdin);
+        nouveauQCM.questions[i].statement[strcspn(nouveauQCM.questions[i].statement, "\n")] = 0;
 
-        for (int j = 0; j < NB_CHOIX; j++) {
+        for (int j = 0; j < MAX_OPTIONS; j++) {
             printf("  Proposition %d : ", j + 1);
-            fgets(nouveauQCM.listeQuestions[i].propositions[j], TAILLE_TEXTE, stdin);
-            nouveauQCM.listeQuestions[i].propositions[j][strcspn(nouveauQCM.listeQuestions[i].propositions[j], "\n")] = 0;
+            fgets(nouveauQCM.questions[i].options[j], MAX_TEXT, stdin);
+            nouveauQCM.questions[i].options[j][strcspn(nouveauQCM.questions[i].options[j], "\n")] = 0;
             
             printf("  Est-elle vraie ? (1=Oui, 0=Non) : ");
-            scanf("%d", &nouveauQCM.listeQuestions[i].reponsesVraies[j]);
-            getchar(); // Consomme le retour ligne
+            fgets(bufferSaisie, sizeof(bufferSaisie), stdin);
+            nouveauQCM.questions[i].correct_answers[j] = atoi(bufferSaisie);
         }
     }
 
@@ -42,9 +74,9 @@ void launchTeacherMode() {
         fclose(f);
         printf("\n>> SUCCES : Le QCM a ete sauvegarde dans '%s' !\n\n", nomFichier);
     } else {
-        printf("Erreur lors de la création du fichier.\n");
+        printf("Erreur lors de la creation du fichier.\n");
     }
 
-    // NETTOYAGE DU BUFFER (pour le menu principal)
-    while (getchar() != '\n');
+    printf("Appuyez sur Entree pour revenir au menu");
+    fgets(bufferSaisie, sizeof(bufferSaisie), stdin); // Fait une pause propre sans bug
 }

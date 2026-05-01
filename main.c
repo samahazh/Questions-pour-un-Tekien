@@ -1,15 +1,14 @@
-#include <stdio.h>    // Nécessaire pour printf et fgets
-#include <stdlib.h>   // Nécessaire pour atoi
-#include "qcm.h"      // Ta structure
-#include "teachers.h" // Pour launchTeacherMode
-#include "student.h"  // Pour launchStudentMode
+#include <stdio.h>    
+#include <stdlib.h>   
+#include "qcm.h"      
+#include "teachers.h" 
+#include "student.h" 
 
 int main() {
     int choix;
     char saisie[50];
 
     do {
-        // Espaces et séparateurs pour la clarté
         printf("\n==========================================\n");
         printf("          QUESTIONS POUR UN TEKIEN\n"); 
         printf("==========================================\n");
@@ -27,12 +26,12 @@ int main() {
 
         switch (choix) {
             case 1:
-                printf("\n[Lancement du Mode Enseignant...]\n");
+                printf("\n[Lancement du Mode Enseignant]\n");
                 launchTeacherMode();
                 break;
 
             case 2:
-                printf("\n[Lancement du Mode Étudiant...]\n");
+                printf("\n[Lancement du Mode Étudiant]\n");
                 launchStudentMode();
                 break;
 
@@ -49,4 +48,3 @@ int main() {
 
     return 0;
 }
-
