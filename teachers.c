@@ -7,6 +7,9 @@
 void launchTeacherMode() {
     char motDePasseSaisi[50];
     const char vraiMotDePasse[] = "prof123";
+    
+    // Notre "panier" magique pour sécuriser toutes les saisies de chiffres
+    char bufferSaisie[MAX_TEXT]; 
 
     printf("\n==========================================\n");
     printf("             MODE ENSEIGNANT\n");
@@ -27,22 +30,26 @@ void launchTeacherMode() {
     printf("\n------------------------------------------\n");
     printf("           CONFIGURATION DU QCM\n");
     printf("------------------------------------------\n");
+    
     printf("Nom du fichier a creer (ex: quizz.bin) : ");
-    scanf("%s", nomFichier);
+    fgets(nomFichier, sizeof(nomFichier), stdin);
+    nomFichier[strcspn(nomFichier, "\n")] = 0; // On retire le '\n'
 
     printf("Nombre de questions : ");
-    scanf("%d", &nouveauQCM.num_questions);
+    fgets(bufferSaisie, sizeof(bufferSaisie), stdin);
+    nouveauQCM.num_questions = atoi(bufferSaisie);
 
     printf("Activer les points negatifs ? (1=Oui, 0=Non) : ");
-    scanf("%d", &nouveauQCM.rules.negative_points);
+    fgets(bufferSaisie, sizeof(bufferSaisie), stdin);
+    nouveauQCM.rules.negative_points = atoi(bufferSaisie);
 
     printf("Activer les reponses multiples ? (1=Oui, 0=Non) : ");
-    scanf("%d", &nouveauQCM.rules.multiple_answers);
+    fgets(bufferSaisie, sizeof(bufferSaisie), stdin);
+    nouveauQCM.rules.multiple_answers = atoi(bufferSaisie);
 
     for (int i = 0; i < nouveauQCM.num_questions; i++) {
         printf("\nQuestion %d :\n", i + 1);
         printf("  Enonce : ");
-        while (getchar() != '\n');
         fgets(nouveauQCM.questions[i].statement, MAX_TEXT, stdin);
         nouveauQCM.questions[i].statement[strcspn(nouveauQCM.questions[i].statement, "\n")] = 0;
 
@@ -52,8 +59,8 @@ void launchTeacherMode() {
             nouveauQCM.questions[i].options[j][strcspn(nouveauQCM.questions[i].options[j], "\n")] = 0;
             
             printf("  Est-elle vraie ? (1=Oui, 0=Non) : ");
-            scanf("%d", &nouveauQCM.questions[i].correct_answers[j]);
-            while (getchar() != '\n'); 
+            fgets(bufferSaisie, sizeof(bufferSaisie), stdin);
+            nouveauQCM.questions[i].correct_answers[j] = atoi(bufferSaisie);
         }
     }
 
@@ -67,5 +74,5 @@ void launchTeacherMode() {
     }
 
     printf("Appuyez sur Entree pour revenir au menu");
-    getchar();
+    fgets(bufferSaisie, sizeof(bufferSaisie), stdin); // Fait une pause propre sans bug
 }
