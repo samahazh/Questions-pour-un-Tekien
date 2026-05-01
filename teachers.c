@@ -1,60 +1,59 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h> // Indispensable pour utiliser strcmp()
+#include <string.h>
 #include "qcm.h"
 #include "teachers.h"
 
 void launchTeacherMode() {
-    // ==========================================
-    // AJOUT : VÉRIFICATION DU MOT DE PASSE
-    // ==========================================
     char motDePasseSaisi[50];
-    const char vraiMotDePasse[] = "prof123"; // Le mot de passe à deviner
+    const char vraiMotDePasse[] = "prof123";
 
-    printf("\n--- ACCES SECURISE ENSEIGNANT ---\n");
+    printf("\n==========================================\n");
+    printf("             MODE ENSEIGNANT\n");
+    printf("==========================================\n");
     printf("Mot de passe requis : ");
     
     fgets(motDePasseSaisi, sizeof(motDePasseSaisi), stdin);
-    
-    // On retire le '\n' (touche Entrée) aspiré par fgets, 
-    // exactement comme ton camarade l'a fait plus bas dans son code !
     motDePasseSaisi[strcspn(motDePasseSaisi, "\n")] = 0;
 
-    // Si la comparaison est différente de 0, ça veut dire que les mots de passe ne correspondent pas
     if (strcmp(motDePasseSaisi, vraiMotDePasse) != 0) {
         printf("\n[ALERTE] Mot de passe incorrect. Retour au menu principal...\n");
-        return; // Le mot-clé "return" stoppe immédiatement la fonction et te renvoie au main !
+        return; 
     }
-    // ==========================================
 
     QCM nouveauQCM;
     char nomFichier[100];
 
-    printf("\n--- CONFIGURATION DU QCM ---\n");
-    printf("Nom du fichier à créer (ex: quizz.bin) : ");
+    printf("\n------------------------------------------\n");
+    printf("           CONFIGURATION DU QCM\n");
+    printf("------------------------------------------\n");
+    printf("Nom du fichier a creer (ex: quizz.bin) : ");
     scanf("%s", nomFichier);
 
     printf("Nombre de questions : ");
-    scanf("%d", &nouveauQCM.nbTotalQuestions);
+    scanf("%d", &nouveauQCM.num_questions);
 
-    printf("Activer les points négatifs ? (1=Oui, 0=Non) : ");
-    scanf("%d", &nouveauQCM.parametres.pointsNegatifs);
+    printf("Activer les points negatifs ? (1=Oui, 0=Non) : ");
+    scanf("%d", &nouveauQCM.rules.negative_points);
 
-    for (int i = 0; i < nouveauQCM.nbTotalQuestions; i++) {
+    printf("Activer les reponses multiples ? (1=Oui, 0=Non) : ");
+    scanf("%d", &nouveauQCM.rules.multiple_answers);
+
+    for (int i = 0; i < nouveauQCM.num_questions; i++) {
         printf("\nQuestion %d :\n", i + 1);
-        printf("  Énoncé : ");
-        getchar(); // Consomme le retour ligne précédent
-        fgets(nouveauQCM.listeQuestions[i].enonce, TAILLE_TEXTE, stdin);
-        nouveauQCM.listeQuestions[i].enonce[strcspn(nouveauQCM.listeQuestions[i].enonce, "\n")] = 0;
+        printf("  Enonce : ");
+        while (getchar() != '\n');
+        fgets(nouveauQCM.questions[i].statement, MAX_TEXT, stdin);
+        nouveauQCM.questions[i].statement[strcspn(nouveauQCM.questions[i].statement, "\n")] = 0;
 
-        for (int j = 0; j < NB_CHOIX; j++) {
+        for (int j = 0; j < MAX_OPTIONS; j++) {
             printf("  Proposition %d : ", j + 1);
-            fgets(nouveauQCM.listeQuestions[i].propositions[j], TAILLE_TEXTE, stdin);
-            nouveauQCM.listeQuestions[i].propositions[j][strcspn(nouveauQCM.listeQuestions[i].propositions[j], "\n")] = 0;
+            fgets(nouveauQCM.questions[i].options[j], MAX_TEXT, stdin);
+            nouveauQCM.questions[i].options[j][strcspn(nouveauQCM.questions[i].options[j], "\n")] = 0;
             
             printf("  Est-elle vraie ? (1=Oui, 0=Non) : ");
-            scanf("%d", &nouveauQCM.listeQuestions[i].reponsesVraies[j]);
-            getchar(); // Consomme le retour ligne
+            scanf("%d", &nouveauQCM.questions[i].correct_answers[j]);
+            while (getchar() != '\n'); 
         }
     }
 
@@ -64,11 +63,9 @@ void launchTeacherMode() {
         fclose(f);
         printf("\n>> SUCCES : Le QCM a ete sauvegarde dans '%s' !\n\n", nomFichier);
     } else {
-        printf("Erreur lors de la création du fichier.\n");
+        printf("Erreur lors de la creation du fichier.\n");
     }
 
-    // NETTOYAGE DU BUFFER (pour le menu principal)
-    while (getchar() != '\n')
-    printf("Appuyez sur Entrée pour revenir au menu");
+    printf("Appuyez sur Entree pour revenir au menu");
     getchar();
 }
