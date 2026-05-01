@@ -1,74 +1,54 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include "qcm.h"      // Pour utiliser les structures Parameters, Question, QCM
-#include "student.h"  // Pour que le fichier soit relié à son header
+#include "qcm.h"
 
-// Cette fonction est celle appelée par le main.c (choix 2)
 void launchStudentMode() {
-    char filename[128];
-    QCM currentQuiz;
+    QCM monQuiz;
+    char nomFichier[100];
+    float scoreFinal = 0;
 
-    printf("\n--- MODE ETUDIANT ---\n");
-    printf("Voici les QCM disponibles (entrez le nom exact du fichier) : ");
-    // Note : Idéalement, il faudrait lister les fichiers, mais pour rester simple :
-    scanf("%s", filename);
+    printf("\n--- BIENVENUE AU TEST ---\n");
+    printf("Nom du fichier QCM à ouvrir : ");
+    scanf("%s", nomFichier);
 
-    // 1. OUVERTURE ET LECTURE DU FICHIER
-    FILE *file = fopen(filename, "rb"); // "rb" pour lire un fichier binaire
-    if (file == NULL) {
-        printf("\033[1;31mErreur : Le fichier '%s' n'existe pas.\033[0m\n", filename);
+    // 1. Lecture du fichier
+    FILE *f = fopen(nomFichier, "rb");
+    if (f == NULL) {
+        printf("Erreur : Impossible de trouver le fichier %s\n", nomFichier);
         return;
     }
+    fread(&monQuiz, sizeof(QCM), 1, f);
+    fclose(f);
 
-    // On lit toute la structure QCM d'un coup
-    fread(&currentQuiz, sizeof(QCM), 1, file);
-    fclose(file);
-
-    // 2. LANCEMENT DU QUIZ
-    printf("\nDemarrage du QCM : %s\n", currentQuiz.name);
-    
-    float totalPoints = 0;
-    int answer;
-
-    for (int i = 0; i < currentQuiz.num_questions; i++) {
-        printf("\nQuestion %d : %s\n", i + 1, currentQuiz.questions[i].statement);
+    // 2. Déroulement des questions
+    for (int i = 0; i < monQuiz.nbTotalQuestions; i++) {
+        int choixEleve;
+        printf("\nQuestion %d : %s\n", i + 1, monQuiz.listeQuestions[i].enonce);
         
-        // Affichage des 4 options
-        for (int j = 0; j < 4; j++) {
-            printf("  %d) %s\n", j + 1, currentQuiz.questions[i].options[j]);
+        for (int j = 0; j < NB_CHOIX; j++) {
+            printf("  %d) %s\n", j + 1, monQuiz.listeQuestions[i].propositions[j]);
         }
 
-        // Saisie de l'élève
-        printf("Votre choix (1-4) : ");
-        scanf("%d", &answer);
+        printf("Votre réponse (1-4) : ");
+        scanf("%d", &choixEleve);
 
-        // Gestion du Mode Séquentiel (Obligation de répondre)
-        if (currentQuiz.rules.sequential_mode == 1 && (answer < 1 || answer > 4)) {
-            printf("Saisie invalide. Vous DEVEZ repondre pour continuer.\n");
-            i--; // On décrémente pour rester sur la même question
-            continue;
-        }
-
-        // Verification de la réponse (on regarde dans le tableau correct_answers)
-        // On fait -1 car l'élève tape 1-4 mais le tableau va de 0-3
-        if (answer >= 1 && answer <= 4 && currentQuiz.questions[i].correct_answers[answer - 1] == 1) {
-            printf("\033[1;32mJuste !\033[0m\n");
-            totalPoints += 1.0;
+        // 3. Vérification simple (on regarde si l'index choisi est marqué comme vrai)
+        // On fait -1 car l'ordinateur compte de 0 à 3, mais l'élève voit 1 à 4
+        if (monQuiz.listeQuestions[i].reponsesVraies[choixEleve - 1] == 1) {
+            printf("Bravo ! C'est juste.\n");
+            scoreFinal += 1;
         } else {
-            printf("\033[1;31mFaux !\033[0m\n");
-            // Gestion des points négatifs
-            if (currentQuiz.rules.negative_points == 1) {
-                totalPoints -= 0.5;
+            printf("Dommage, c'est faux.\n");
+            if (monQuiz.parametres.pointsNegatifs == 1) {
+                scoreFinal -= 0.5;
             }
         }
     }
 
-    // 3. CALCUL ET AFFICHAGE DE LA NOTE FINALE SUR 20
-    float finalGrade = (totalPoints / currentQuiz.num_questions) * 20;
-    if (finalGrade < 0) finalGrade = 0; // On ne descend pas en dessous de 0/20
+    // 4. Calcul de la note sur 20
+    float noteSur20 = (scoreFinal / monQuiz.nbTotalQuestions) * 20;
+    if (noteSur20 < 0) noteSur20 = 0; // On évite les notes négatives
 
-    printf("\n------------------------------\n");
-    printf("SCORE FINAL : %.2f / 20\n", finalGrade);
-    printf("------------------------------\n");
+    printf("\n--- RESULTAT ---\n");
+    printf("Votre note finale : %.2f / 20\n", noteSur20);
 }
