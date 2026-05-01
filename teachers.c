@@ -1,10 +1,32 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string.h> // Indispensable pour utiliser strcmp()
 #include "qcm.h"
 #include "teachers.h"
 
 void launchTeacherMode() {
+    // ==========================================
+    // AJOUT : VÉRIFICATION DU MOT DE PASSE
+    // ==========================================
+    char motDePasseSaisi[50];
+    const char vraiMotDePasse[] = "prof123"; // Le mot de passe à deviner
+
+    printf("\n--- ACCES SECURISE ENSEIGNANT ---\n");
+    printf("Mot de passe requis : ");
+    
+    fgets(motDePasseSaisi, sizeof(motDePasseSaisi), stdin);
+    
+    // On retire le '\n' (touche Entrée) aspiré par fgets, 
+    // exactement comme ton camarade l'a fait plus bas dans son code !
+    motDePasseSaisi[strcspn(motDePasseSaisi, "\n")] = 0;
+
+    // Si la comparaison est différente de 0, ça veut dire que les mots de passe ne correspondent pas
+    if (strcmp(motDePasseSaisi, vraiMotDePasse) != 0) {
+        printf("\n[ALERTE] Mot de passe incorrect. Retour au menu principal...\n");
+        return; // Le mot-clé "return" stoppe immédiatement la fonction et te renvoie au main !
+    }
+    // ==========================================
+
     QCM nouveauQCM;
     char nomFichier[100];
 
@@ -46,5 +68,7 @@ void launchTeacherMode() {
     }
 
     // NETTOYAGE DU BUFFER (pour le menu principal)
-    while (getchar() != '\n');
+    while (getchar() != '\n')
+    printf("Appuyez sur Entrée pour revenir au menu");
+    getchar();
 }
