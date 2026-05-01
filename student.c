@@ -6,7 +6,7 @@
 
 void launchStudentMode() {
     QCM monQuiz;
-    char bufferSaisie[MAX_TEXT]; // Notre panier magique pour aspirer les textes et les chiffres !
+    char bufferSaisie[MAX_TEXT]; 
 
     printf("\n==========================================\n");
     printf("              MODE ETUDIANT\n");
@@ -14,7 +14,7 @@ void launchStudentMode() {
     
     printf("Entrez le nom du fichier QCM a ouvrir (ex: quizz.bin) : ");
     fgets(bufferSaisie, sizeof(bufferSaisie), stdin);
-    bufferSaisie[strcspn(bufferSaisie, "\n")] = 0; // On retire le 'Entree'
+    bufferSaisie[strcspn(bufferSaisie, "\n")] = 0; 
 
     FILE *f = fopen(bufferSaisie, "rb");
     if (f == NULL) {
@@ -29,7 +29,8 @@ void launchStudentMode() {
     float scoreFinal = 0;
 
     for (int i = 0; i < monQuiz.num_questions; i++) {
-        int choixEleveTableau[MAX_OPTIONS] = {0}; // Tableau pour stocker ce que l'eleve coche
+        int choixEleveTableau[MAX_OPTIONS] = {0}; 
+        int aReponduQuelqueChose = 0; // Pour savoir s'il a passé la question
 
         printf("\n------------------------------------------\n");
         printf("Question %d : %s\n", i + 1, monQuiz.questions[i].statement);
@@ -44,11 +45,27 @@ void launchStudentMode() {
 
         /* --- SI C'EST UNE QUESTION A CHOIX MULTIPLES --- */
         if (monQuiz.rules.multiple_answers == 1) {
-            int nbChoix = 0;
+            int nbChoix = -1;
             do {
-                printf("\nCombien de reponses voulez-vous donner ? (1 a %d) : ", MAX_OPTIONS);
+                if (monQuiz.rules.sequential_mode == 1) {
+                    printf("\nCombien de reponses ? (1 a %d) : ", MAX_OPTIONS);
+                } else {
+                    printf("\nCombien de reponses ? (1 a %d, ou 0 pour passer) : ", MAX_OPTIONS);
+                }
+                
                 fgets(bufferSaisie, sizeof(bufferSaisie), stdin);
-                nbChoix = atoi(bufferSaisie);
+                
+                // Si l'élève appuie juste sur Entrée ou tape 0
+                if ((bufferSaisie[0] == '\n' || atoi(bufferSaisie) == 0) && monQuiz.rules.sequential_mode == 0) {
+                    nbChoix = 0;
+                } else {
+                    nbChoix = atoi(bufferSaisie);
+                }
+
+                if (nbChoix == 0 && monQuiz.rules.sequential_mode == 0) {
+                    printf("[INFO] Question passee.\n");
+                    break; // On sort de la boucle sans rien demander de plus
+                }
             } while (nbChoix < 1 || nbChoix > MAX_OPTIONS);
 
             for (int k = 0; k < nbChoix; k++) {
@@ -58,33 +75,57 @@ void launchStudentMode() {
                     fgets(bufferSaisie, sizeof(bufferSaisie), stdin);
                     rep = atoi(bufferSaisie);
                 } while (rep < 1 || rep > MAX_OPTIONS);
-                choixEleveTableau[rep - 1] = 1; // On enregistre la case cochee
+                choixEleveTableau[rep - 1] = 1; 
+                aReponduQuelqueChose = 1;
             }
         } 
         /* --- SI C'EST UNE QUESTION A CHOIX UNIQUE --- */
         else {
-            int choixEleve = 0;
+            int choixEleve = -1;
             do {
-                printf("\nVotre reponse (1 a %d) : ", MAX_OPTIONS);
+                if (monQuiz.rules.sequential_mode == 1) {
+                    printf("\nVotre reponse (1 a %d) : ", MAX_OPTIONS);
+                } else {
+                    printf("\nVotre reponse (1 a %d, ou 0 pour passer) : ", MAX_OPTIONS);
+                }
+                
                 fgets(bufferSaisie, sizeof(bufferSaisie), stdin);
-                choixEleve = atoi(bufferSaisie);
-                if (choixEleve < 1 || choixEleve > MAX_OPTIONS) {
+                
+                // Si l'élève appuie juste sur Entrée ou tape 0
+                if ((bufferSaisie[0] == '\n' || atoi(bufferSaisie) == 0) && monQuiz.rules.sequential_mode == 0) {
+                    choixEleve = 0;
+                } else {
+                    choixEleve = atoi(bufferSaisie);
+                }
+
+                if (choixEleve == 0 && monQuiz.rules.sequential_mode == 0) {
+                    printf("[INFO] Question passee.\n");
+                    break; // On sort de la boucle
+                } else if (choixEleve < 1 || choixEleve > MAX_OPTIONS) {
                     printf("Erreur : Choisissez un chiffre valide.\n");
                 }
             } while (choixEleve < 1 || choixEleve > MAX_OPTIONS);
-            choixEleveTableau[choixEleve - 1] = 1; // On enregistre la case cochee
+            
+            if (choixEleve >= 1 && choixEleve <= MAX_OPTIONS) {
+                choixEleveTableau[choixEleve - 1] = 1; 
+                aReponduQuelqueChose = 1;
+            }
         }
 
         // VERIFICATION DES REPONSES
         int correct = 1;
         for (int j = 0; j < MAX_OPTIONS; j++) {
             if (choixEleveTableau[j] != monQuiz.questions[i].correct_answers[j]) {
-                correct = 0; // L'eleve s'est trompe sur au moins une case
+                correct = 0; 
                 break;
             }
         }
 
-        if (correct == 1) {
+        if (aReponduQuelqueChose == 0) {
+            printf("Aucune reponse donnee. C'est considere comme faux.\n");
+            // Si tu veux retirer des points même quand il passe, décommente la ligne en dessous
+            // if (monQuiz.rules.negative_points == 1) { scoreFinal -= 0.5; printf("(Point retire : -0.5)\n"); }
+        } else if (correct == 1) {
             printf("Bravo ! C'est juste.\n");
             scoreFinal += 1;
         } else {
@@ -111,7 +152,7 @@ void launchStudentMode() {
     }
 
     float noteSur20 = 0;
-    if (monQuiz.num_questions > 0) { // Securite pour eviter la division par zero
+    if (monQuiz.num_questions > 0) { 
         noteSur20 = (scoreFinal / monQuiz.num_questions) * 20;
     }
     if (noteSur20 < 0) noteSur20 = 0;
@@ -123,5 +164,5 @@ void launchStudentMode() {
     printf("==========================================\n\n");
 
     printf("Appuyez sur Entree pour revenir au menu");
-    fgets(bufferSaisie, sizeof(bufferSaisie), stdin); // Pause finale propre
+    fgets(bufferSaisie, sizeof(bufferSaisie), stdin); 
 }
