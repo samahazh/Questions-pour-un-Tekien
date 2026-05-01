@@ -1,15 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "qcm.h"
 #include "teachers.h"
+
 #define TEACHER_MDP "tekien2025"
-#define TAILLE_MAX 256
-void createQCM();
+
 void removeNewline(char* str) {
     str[strcspn(str, "\n")] = 0;
 }
+
+void createQCM();
+
 void launchTeacherMode() {
-    char input[TAILLE_MAX];
+    char input[TAILLE_TEXTE];
 
     printf("\n=== MODE ENSEIGNANT - AUTHENTIFICATION ===\n");
     printf("Veuillez entrer le mot de passe : ");
@@ -19,93 +23,63 @@ void launchTeacherMode() {
         if (strcmp(input, TEACHER_MDP) == 0) {
             printf("\n>> Authentification reussie. Bienvenue.\n");
             createQCM();
-            
         } else {
-            printf("\n>> Mot de passe incorrect. Retour au menu principal.\n");
+            printf("\n>> Mot de passe incorrect.\n");
         }
     }
 }
+
 void createQCM() {
-    char nomqcm[TAILLE_MAX];
-    char nomfichier[TAILLE_MAX];
-    char input[TAILLE_MAX];
-    
-    int negPoints = 0;
-    int multreponses = 0;
-    int seqMode = 0;
-    int numQuestions = 0;
+    QCM nouveauQuiz; // On utilise la structure de qcm.h
+    char nomFichier[TAILLE_TEXTE];
+    char temp[TAILLE_TEXTE];
 
     printf("\n--- CREATION D'UN NOUVEAU QCM ---\n");
 
-    printf("Nom du QCM (ATTENTION: evitez les espaces et caracteres speciaux) : ");
-    fgets(nomqcm, sizeof(nomqcm), stdin);
-    removeNewline(nomqcm);
+    printf("Titre du QCM : ");
+    fgets(nouveauQuiz.titre, TAILLE_TEXTE, stdin);
+    removeNewline(nouveauQuiz.titre);
 
-    snprintf(nomfichier, sizeof(nomfichier), "%s.txt", nomqcm);
+    // Paramètres (on utilise les noms de qcm.h)
+    printf("Points negatifs ? (1=Oui, 0=Non) : ");
+    fgets(temp, sizeof(temp), stdin);
+    nouveauQuiz.parametres.pointsNegatifs = atoi(temp);
 
-    printf("\n--- PARAMETRES DU QCM ---\n");
+    printf("Mode force (sequentiel) ? (1=Oui, 0=Non) : ");
+    fgets(temp, sizeof(temp), stdin);
+    nouveauQuiz.parametres.modeForce = atoi(temp);
 
-    printf("1. Activer les points negatifs pour les mauvaises reponses ? (1 = Oui, 0 = Non) : ");
-    fgets(input, sizeof(input), stdin);
-    negPoints = atoi(input);
+    printf("Nombre de questions : ");
+    fgets(temp, sizeof(temp), stdin);
+    nouveauQuiz.nbTotalQuestions = atoi(temp);
 
-    printf("2. Autoriser plusieurs reponses vraies par question ? (1 = Oui, 0 = Non) : ");
-    fgets(input, sizeof(input), stdin);
-    multreponses = atoi(input);
+    for (int i = 0; i < nouveauQuiz.nbTotalQuestions; i++) {
+        printf("\n--- QUESTION %d ---\n", i + 1);
+        printf("Enonce : ");
+        fgets(nouveauQuiz.listeQuestions[i].enonce, TAILLE_TEXTE, stdin);
+        removeNewline(nouveauQuiz.listeQuestions[i].enonce);
 
-    printf("3. Mode sequentiel (impossible de passer une question) ? (1 = Oui, 0 = Non) : ");
-    fgets(input, sizeof(input), stdin);
-    seqMode = atoi(input);
+        for (int j = 0; j < NB_CHOIX; j++) {
+            printf("  Proposition %d : ", j + 1);
+            fgets(nouveauQuiz.listeQuestions[i].propositions[j], TAILLE_TEXTE, stdin);
+            removeNewline(nouveauQuiz.listeQuestions[i].propositions[j]);
 
-    printf("4. Combien de questions ce QCM contiendra-t-il ? : ");
-    fgets(input, sizeof(input), stdin);
-    numQuestions = atoi(input);
-
-    FILE *fichier = fopen(nomfichier, "w");
-    if (fichier == NULL) {
-        printf("\n>> Erreur critique : Impossible de creer le fichier %s.\n", nomfichier);
-        return; 
-    }
-
-    fprintf(fichier, "NOM_QCM:%s\n", qcmName);
-    fprintf(fichier, "PARAM_NEG_POINTS:%d\n", negPoints);
-    fprintf(fichier, "PARAM_MULT_REPONSES:%d\n", multreponses);
-    fprintf(fichier, "PARAM_SEQ_MODE:%d\n", seqMode);
-    fprintf(fichier, "TOTAL_QUESTIONS:%d\n", numQuestions);
-
-    for (int i = 0; i < numQuestions; i++) {
-        char questionText[TAILLE_MAX];
-        int numChoix = 0;
-
-        printf("\n--- REDACTION DE LA QUESTION %d ---\n", i + 1);
-        printf("Intitule de la question : ");
-        fgets(questionText, sizeof(questionText), stdin);
-        removeNewline(questionText);
-
-    fprintf(fichier, "\nQUESTION:%s\n", questionText);
-
-    printf("Combien de propositions (choix) pour cette question ? : ");
-    fgets(input, sizeof(input), stdin);
-    numChoix = atoi(input);
-    fprintf(fichier, "TOTAL_CHOIX:%d\n", numChoix);
-      
-    for (int j = 0; j < numChoix; j++) {
-            char choixText[TAILLE_MAX];
-            int Correct = 0;
-
-            printf("  > Proposition %d : ", j + 1);
-            fgets(choixText, sizeof(choixText), stdin);
-            removeNewline(choixText);
-
-            printf("  > Cette proposition est-elle VRAIE ? (1 = Oui, 0 = Non) : ");
-            fgets(input, sizeof(input), stdin);
-            Correct = atoi(input);
-
-            fprintf(fichier, "CHOIX:%d:%s\n", Correct, choixText);
+            printf("  Est-elle vraie ? (1=Oui, 0=Non) : ");
+            fgets(temp, sizeof(temp), stdin);
+            nouveauQuiz.listeQuestions[i].reponsesVraies[j] = atoi(temp);
         }
     }
 
-  
-    fclose(fichier);
-    printf("\n>> SUCCES : Le QCM '%s' a ete sauvegarde avec succes dans le fichier '%s' !\n", nomqcm, nomfichier);
+    // Sauvegarde BINAIRE pour être compatible avec student.c
+    snprintf(nomFichier, sizeof(nomFichier), "%s.bin", nouveauQuiz.titre);
+    FILE *fichier = fopen(nomFichier, "wb"); // wb = write binary
+    if (fichier == NULL) {
+        printf("Erreur de creation du fichier.\n");
+        return;
     }
+
+    fwrite(&nouveauQuiz, sizeof(QCM), 1, fichier);
+    fclose(fichier);
+
+    printf("\n>> SUCCES : Le QCM a ete sauvegarde dans '%s' !\n", nomFichier);
+}
