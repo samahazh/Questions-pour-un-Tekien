@@ -47,6 +47,10 @@ void launchTeacherMode() {
     fgets(bufferSaisie, sizeof(bufferSaisie), stdin);
     nouveauQCM.rules.multiple_answers = atoi(bufferSaisie);
 
+    printf("Activer le mode sequentiel ? (1=Oui, 0=Non) : ");
+    fgets(bufferSaisie, sizeof(bufferSaisie), stdin);
+    nouveauQCM.rules.sequential_mode = atoi(bufferSaisie);
+
     for (int i = 0; i < nouveauQCM.num_questions; i++) {
         printf("\nQuestion %d :\n", i + 1);
         printf("  Enonce : ");
