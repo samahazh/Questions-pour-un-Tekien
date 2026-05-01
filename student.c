@@ -6,71 +6,80 @@
 
 void launchStudentMode() {
     QCM monQuiz;
-    char nomFichier[100];
-    float scoreFinal = 0;
+    char bufferSaisie[MAX_TEXT]; // Notre panier magique pour aspirer les textes et les chiffres !
 
     printf("\n==========================================\n");
     printf("              MODE ETUDIANT\n");
     printf("==========================================\n");
     
     printf("Entrez le nom du fichier QCM a ouvrir (ex: quizz.bin) : ");
-    scanf("%s", nomFichier);
+    fgets(bufferSaisie, sizeof(bufferSaisie), stdin);
+    bufferSaisie[strcspn(bufferSaisie, "\n")] = 0; // On retire le 'Entree'
 
-    FILE *f = fopen(nomFichier, "rb");
+    FILE *f = fopen(bufferSaisie, "rb");
     if (f == NULL) {
-        printf("\nERREUR : Impossible de trouver le fichier '%s'\n", nomFichier);
-        while (getchar() != '\n'); 
+        printf("\n[ERREUR] Impossible de trouver le fichier '%s'\n", bufferSaisie);
+        printf("Appuyez sur Entree pour revenir au menu");
+        fgets(bufferSaisie, sizeof(bufferSaisie), stdin);
         return;
     }
     fread(&monQuiz, sizeof(QCM), 1, f);
     fclose(f);
 
+    float scoreFinal = 0;
+
     for (int i = 0; i < monQuiz.num_questions; i++) {
-        int choixEleveTableau[MAX_OPTIONS] = {0};
+        int choixEleveTableau[MAX_OPTIONS] = {0}; // Tableau pour stocker ce que l'eleve coche
 
         printf("\n------------------------------------------\n");
         printf("Question %d : %s\n", i + 1, monQuiz.questions[i].statement);
         
         if (monQuiz.rules.multiple_answers == 1) {
-            printf("(Plusieurs reponses possibles)\n");
+            printf("(ATTENTION : Plusieurs reponses possibles)\n");
         }
 
         for (int j = 0; j < MAX_OPTIONS; j++) {
             printf("  %d) %s\n", j + 1, monQuiz.questions[i].options[j]);
         }
 
+        /* --- SI C'EST UNE QUESTION A CHOIX MULTIPLES --- */
         if (monQuiz.rules.multiple_answers == 1) {
-            int nbChoix;
-            printf("\nCombien de propositions voulez-vous cocher ? ");
-            scanf("%d", &nbChoix);
-            for (int k = 0; k < nbChoix; k++) {
-                int rep;
-                printf("  Choix %d : ", k + 1);
-                scanf("%d", &rep);
-                if (rep >= 1 && rep <= MAX_OPTIONS) {
-                    choixEleveTableau[rep - 1] = 1;
-                }
-            }
-        } else {
-            int choixEleve;
+            int nbChoix = 0;
             do {
-                printf("\nVotre reponse : ");
-                if (scanf("%d", &choixEleve) != 1) {
-                    printf("Saisie invalide ! Veuillez taper un chiffre.");
-                    while (getchar() != '\n'); 
-                    choixEleve = 0;
-                }
+                printf("\nCombien de reponses voulez-vous donner ? (1 a %d) : ", MAX_OPTIONS);
+                fgets(bufferSaisie, sizeof(bufferSaisie), stdin);
+                nbChoix = atoi(bufferSaisie);
+            } while (nbChoix < 1 || nbChoix > MAX_OPTIONS);
+
+            for (int k = 0; k < nbChoix; k++) {
+                int rep = 0;
+                do {
+                    printf("  Donnez votre choix n%d : ", k + 1);
+                    fgets(bufferSaisie, sizeof(bufferSaisie), stdin);
+                    rep = atoi(bufferSaisie);
+                } while (rep < 1 || rep > MAX_OPTIONS);
+                choixEleveTableau[rep - 1] = 1; // On enregistre la case cochee
+            }
+        } 
+        /* --- SI C'EST UNE QUESTION A CHOIX UNIQUE --- */
+        else {
+            int choixEleve = 0;
+            do {
+                printf("\nVotre reponse (1 a %d) : ", MAX_OPTIONS);
+                fgets(bufferSaisie, sizeof(bufferSaisie), stdin);
+                choixEleve = atoi(bufferSaisie);
                 if (choixEleve < 1 || choixEleve > MAX_OPTIONS) {
-                    printf("Erreur : Choisissez un chiffre entre 1 et %d uniquement.", MAX_OPTIONS);
+                    printf("Erreur : Choisissez un chiffre valide.\n");
                 }
             } while (choixEleve < 1 || choixEleve > MAX_OPTIONS);
-            choixEleveTableau[choixEleve - 1] = 1;
+            choixEleveTableau[choixEleve - 1] = 1; // On enregistre la case cochee
         }
 
+        // VERIFICATION DES REPONSES
         int correct = 1;
         for (int j = 0; j < MAX_OPTIONS; j++) {
             if (choixEleveTableau[j] != monQuiz.questions[i].correct_answers[j]) {
-                correct = 0;
+                correct = 0; // L'eleve s'est trompe sur au moins une case
                 break;
             }
         }
@@ -101,7 +110,10 @@ void launchStudentMode() {
         printf("\n");
     }
 
-    float noteSur20 = (scoreFinal / monQuiz.num_questions) * 20;
+    float noteSur20 = 0;
+    if (monQuiz.num_questions > 0) { // Securite pour eviter la division par zero
+        noteSur20 = (scoreFinal / monQuiz.num_questions) * 20;
+    }
     if (noteSur20 < 0) noteSur20 = 0;
 
     printf("\n------------------------------------------\n");
@@ -110,8 +122,6 @@ void launchStudentMode() {
     printf("Votre note : %.2f / 20\n", noteSur20);
     printf("==========================================\n\n");
 
-    while (getchar() != '\n'); 
     printf("Appuyez sur Entree pour revenir au menu");
-    getchar();
+    fgets(bufferSaisie, sizeof(bufferSaisie), stdin); // Pause finale propre
 }
-  
