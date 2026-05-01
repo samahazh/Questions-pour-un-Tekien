@@ -165,4 +165,8 @@ void launchStudentMode() {
 
     printf("Appuyez sur Entree pour revenir au menu");
     fgets(bufferSaisie, sizeof(bufferSaisie), stdin); 
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> bb211f7200a805430c57fcd4d6e4babc10eca7c1

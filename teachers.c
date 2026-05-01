@@ -79,4 +79,8 @@ void launchTeacherMode() {
 
     printf("Appuyez sur Entree pour revenir au menu");
     fgets(bufferSaisie, sizeof(bufferSaisie), stdin); // Fait une pause propre sans bug
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> bb211f7200a805430c57fcd4d6e4babc10eca7c1
