@@ -4,82 +4,47 @@
 #include "qcm.h"
 #include "teachers.h"
 
-#define TEACHER_MDP "tekien2025"
-
-void removeNewline(char* str) {
-    str[strcspn(str, "\n")] = 0;
-}
-
-void createQCM();
-
 void launchTeacherMode() {
-    char input[TAILLE_TEXTE];
+    QCM nouveauQCM;
+    char nomFichier[100];
 
-    printf("\n=== MODE ENSEIGNANT - AUTHENTIFICATION ===\n");
-    printf("Veuillez entrer le mot de passe : ");
-    
-    if (fgets(input, sizeof(input), stdin) != NULL) {
-        removeNewline(input);
-        if (strcmp(input, TEACHER_MDP) == 0) {
-            printf("\n>> Authentification reussie. Bienvenue.\n");
-            createQCM();
-        } else {
-            printf("\n>> Mot de passe incorrect.\n");
-        }
-    }
-}
-
-void createQCM() {
-    QCM nouveauQuiz; // On utilise la structure de qcm.h
-    char nomFichier[TAILLE_TEXTE];
-    char temp[TAILLE_TEXTE];
-
-    printf("\n--- CREATION D'UN NOUVEAU QCM ---\n");
-
-    printf("Titre du QCM : ");
-    fgets(nouveauQuiz.titre, TAILLE_TEXTE, stdin);
-    removeNewline(nouveauQuiz.titre);
-
-    // Paramètres (on utilise les noms de qcm.h)
-    printf("Points negatifs ? (1=Oui, 0=Non) : ");
-    fgets(temp, sizeof(temp), stdin);
-    nouveauQuiz.parametres.pointsNegatifs = atoi(temp);
-
-    printf("Mode force (sequentiel) ? (1=Oui, 0=Non) : ");
-    fgets(temp, sizeof(temp), stdin);
-    nouveauQuiz.parametres.modeForce = atoi(temp);
+    printf("\n--- CONFIGURATION DU QCM ---\n");
+    printf("Nom du fichier à créer (ex: quizz.bin) : ");
+    scanf("%s", nomFichier);
 
     printf("Nombre de questions : ");
-    fgets(temp, sizeof(temp), stdin);
-    nouveauQuiz.nbTotalQuestions = atoi(temp);
+    scanf("%d", &nouveauQCM.nbTotalQuestions);
 
-    for (int i = 0; i < nouveauQuiz.nbTotalQuestions; i++) {
-        printf("\n--- QUESTION %d ---\n", i + 1);
-        printf("Enonce : ");
-        fgets(nouveauQuiz.listeQuestions[i].enonce, TAILLE_TEXTE, stdin);
-        removeNewline(nouveauQuiz.listeQuestions[i].enonce);
+    printf("Activer les points négatifs ? (1=Oui, 0=Non) : ");
+    scanf("%d", &nouveauQCM.parametres.pointsNegatifs);
+
+    for (int i = 0; i < nouveauQCM.nbTotalQuestions; i++) {
+        printf("\nQuestion %d :\n", i + 1);
+        printf("  Énoncé : ");
+        getchar(); // Consomme le retour ligne précédent
+        fgets(nouveauQCM.listeQuestions[i].enonce, TAILLE_TEXTE, stdin);
+        nouveauQCM.listeQuestions[i].enonce[strcspn(nouveauQCM.listeQuestions[i].enonce, "\n")] = 0;
 
         for (int j = 0; j < NB_CHOIX; j++) {
             printf("  Proposition %d : ", j + 1);
-            fgets(nouveauQuiz.listeQuestions[i].propositions[j], TAILLE_TEXTE, stdin);
-            removeNewline(nouveauQuiz.listeQuestions[i].propositions[j]);
-
+            fgets(nouveauQCM.listeQuestions[i].propositions[j], TAILLE_TEXTE, stdin);
+            nouveauQCM.listeQuestions[i].propositions[j][strcspn(nouveauQCM.listeQuestions[i].propositions[j], "\n")] = 0;
+            
             printf("  Est-elle vraie ? (1=Oui, 0=Non) : ");
-            fgets(temp, sizeof(temp), stdin);
-            nouveauQuiz.listeQuestions[i].reponsesVraies[j] = atoi(temp);
+            scanf("%d", &nouveauQCM.listeQuestions[i].reponsesVraies[j]);
+            getchar(); // Consomme le retour ligne
         }
     }
 
-    // Sauvegarde BINAIRE pour être compatible avec student.c
-    snprintf(nomFichier, sizeof(nomFichier), "%s.bin", nouveauQuiz.titre);
-    FILE *fichier = fopen(nomFichier, "wb"); // wb = write binary
-    if (fichier == NULL) {
-        printf("Erreur de creation du fichier.\n");
-        return;
+    FILE *f = fopen(nomFichier, "wb");
+    if (f != NULL) {
+        fwrite(&nouveauQCM, sizeof(QCM), 1, f);
+        fclose(f);
+        printf("\n>> SUCCES : Le QCM a ete sauvegarde dans '%s' !\n\n", nomFichier);
+    } else {
+        printf("Erreur lors de la création du fichier.\n");
     }
 
-    fwrite(&nouveauQuiz, sizeof(QCM), 1, fichier);
-    fclose(fichier);
-
-    printf("\n>> SUCCES : Le QCM a ete sauvegarde dans '%s' !\n", nomFichier);
+    // NETTOYAGE DU BUFFER (pour le menu principal)
+    while (getchar() != '\n');
 }
